@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-m2%20embedder-blue)
+![Status](https://img.shields.io/badge/status-m3%20styles-blue)
 
 **Are these two faces the same person — even when one is a cartoon?**
 
@@ -12,9 +12,14 @@ StyleVerify is a lightweight REST API + CLI tool for stylization-agnostic face v
 
 ## Status
 
-**M2 complete — ArcFace embedder.** The face embedding module is implemented and tested. Style augmentations, API, and CLI are planned in subsequent milestones.
+**M3 complete — style augmentation pipeline.** Five deterministic image transforms and a style detector are implemented and tested. FastAPI endpoint and CLI are planned in M4.
 
-What M2 ships:
+What M3 ships:
+- `src/styleverify/styles.py` — five transforms (`sketch`, `pencil`, `cartoon`, `oil`, `watercolor`) plus `detect_style` heuristic; all pure Pillow + NumPy + scikit-image, no OpenCV
+- `scripts/demo_styles.py` — standalone script that produces a 2×3 image grid (original + 5 styled variants); run with `PYTHONPATH=src python scripts/demo_styles.py`
+- `tests/test_styles.py` — transform output shape/mode checks, pixel-change assertions, and detector validity tests
+
+What M2 shipped:
 - `src/styleverify/embedder.py` — `get_embedding`, `cosine_similarity`, `verify` functions backed by ArcFace via DeepFace (CPU-only ONNX inference)
 - `tests/test_embedder.py` — two unit tests: same-image similarity ≥ 0.99, different-image similarity < 0.6
 - `pytest==8.2.2` added to `requirements.txt`
@@ -64,6 +69,16 @@ pip install -r requirements.txt
 ```
 
 > **Note:** On first inference, DeepFace downloads ArcFace ONNX weights (~70 MB) to `~/.deepface/weights/`. This makes the first request slow; subsequent requests are fast.
+
+### Style demo grid
+
+```bash
+# Uses a synthetic gradient image if no --input is given
+PYTHONPATH=src python scripts/demo_styles.py --output demo_grid.png
+
+# With your own face photo
+PYTHONPATH=src python scripts/demo_styles.py --input photo.jpg --output demo_grid.png
+```
 
 ### REST API
 
@@ -128,12 +143,15 @@ Files without a milestone tag are present on disk. Planned additions show the mi
 styleverify/
 ├── src/
 │   └── styleverify/        # core package
-│       ├── __init__.py     (re-exports get_embedding, cosine_similarity, verify)
+│       ├── __init__.py     (re-exports embedder + styles)
 │       ├── embedder.py     (ArcFace embedding extraction, cosine similarity, verify)
-│       └── styles.py       (M3 — style augmentations)
+│       └── styles.py       (five style transforms + detect_style heuristic)
+├── scripts/
+│   └── demo_styles.py      (2×3 grid demo; run with PYTHONPATH=src)
 ├── tests/
 │   ├── __init__.py
-│   └── test_embedder.py    (same-image ≥ 0.99, different-image < 0.6)
+│   ├── test_embedder.py    (same-image ≥ 0.99, different-image < 0.6)
+│   └── test_styles.py      (transform shape/pixel/detector tests)
 ├── main.py                 (M4 — FastAPI app)
 ├── verify.py               (M4 — CLI entry point)
 ├── Dockerfile              (stub)
@@ -151,7 +169,7 @@ styleverify/
 |---|---|---|
 | M1 | Scaffold: project layout, deps, license, README | done |
 | M2 | ArcFace embedder (`embedder.py`) | done |
-| M3 | Style augmentations (`styles.py`) | planned |
+| M3 | Style augmentations (`styles.py`) | done |
 | M4 | FastAPI endpoint + CLI (`main.py`, `verify.py`) | planned |
 | M5 | Evaluation script, LFW benchmark, filled metrics table | planned |
 
