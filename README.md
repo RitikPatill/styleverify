@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-scaffold-yellow)
+![Status](https://img.shields.io/badge/status-m2%20embedder-blue)
 
 **Are these two faces the same person — even when one is a cartoon?**
 
@@ -12,9 +12,14 @@ StyleVerify is a lightweight REST API + CLI tool for stylization-agnostic face v
 
 ## Status
 
-**M1 complete — scaffold only.** The package skeleton, dependency pins, and project configuration are in place. Core logic (embedder, style augmentations, API, CLI) is not yet implemented; see the Roadmap below.
+**M2 complete — ArcFace embedder.** The face embedding module is implemented and tested. Style augmentations, API, and CLI are planned in subsequent milestones.
 
-What M1 ships:
+What M2 ships:
+- `src/styleverify/embedder.py` — `get_embedding`, `cosine_similarity`, `verify` functions backed by ArcFace via DeepFace (CPU-only ONNX inference)
+- `tests/test_embedder.py` — two unit tests: same-image similarity ≥ 0.99, different-image similarity < 0.6
+- `pytest==8.2.2` added to `requirements.txt`
+
+What M1 shipped:
 - `src/` layout with `styleverify` package stub
 - `requirements.txt` with fully pinned dependencies (DeepFace 0.0.93, NumPy 1.26.4, Pillow 10.3.0, scikit-image 0.23.2, FastAPI 0.111.0, uvicorn 0.30.1)
 - `pyproject.toml` — setuptools build, `requires-python = ">=3.10"`
@@ -117,22 +122,25 @@ Evaluated on a 500-pair subset of LFW (Labeled Faces in the Wild):
 
 ## Project structure
 
-Files marked `(exists)` are present in M1. Everything else is a planned addition.
+Files without a milestone tag are present on disk. Planned additions show the milestone they ship in.
 
 ```
 styleverify/
 ├── src/
 │   └── styleverify/        # core package
-│       ├── __init__.py     (exists — stub)
-│       ├── embedder.py     (M2 — ArcFace embedding extraction)
+│       ├── __init__.py     (re-exports get_embedding, cosine_similarity, verify)
+│       ├── embedder.py     (ArcFace embedding extraction, cosine similarity, verify)
 │       └── styles.py       (M3 — style augmentations)
+├── tests/
+│   ├── __init__.py
+│   └── test_embedder.py    (same-image ≥ 0.99, different-image < 0.6)
 ├── main.py                 (M4 — FastAPI app)
 ├── verify.py               (M4 — CLI entry point)
-├── Dockerfile              (exists — stub)
-├── requirements.txt        (exists — pinned)
-├── pyproject.toml          (exists — minimal)
-├── LICENSE                 (exists — MIT)
-└── .gitignore              (exists)
+├── Dockerfile              (stub)
+├── requirements.txt        (pinned, includes pytest)
+├── pyproject.toml          (minimal setuptools build)
+├── LICENSE                 (MIT)
+└── .gitignore
 ```
 
 ---
@@ -142,7 +150,7 @@ styleverify/
 | Milestone | Scope | Status |
 |---|---|---|
 | M1 | Scaffold: project layout, deps, license, README | done |
-| M2 | ArcFace embedder (`embedder.py`) | planned |
+| M2 | ArcFace embedder (`embedder.py`) | done |
 | M3 | Style augmentations (`styles.py`) | planned |
 | M4 | FastAPI endpoint + CLI (`main.py`, `verify.py`) | planned |
 | M5 | Evaluation script, LFW benchmark, filled metrics table | planned |
