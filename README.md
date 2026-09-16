@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-m3%20styles-blue)
+![Status](https://img.shields.io/badge/status-m4%20api-blue)
 
 **Are these two faces the same person — even when one is a cartoon?**
 
@@ -12,9 +12,15 @@ StyleVerify is a lightweight REST API + CLI tool for stylization-agnostic face v
 
 ## Status
 
-**M3 complete — style augmentation pipeline.** Five deterministic image transforms and a style detector are implemented and tested. FastAPI endpoint and CLI are planned in M4.
+**M4 complete — FastAPI service + CLI.** The REST endpoint and command-line tool are fully implemented and tested.
 
-What M3 ships:
+What M4 ships:
+- `main.py` — FastAPI app with `POST /verify` (multipart, two images → `{match, score, style_detected, elapsed_ms}`) and `GET /health`
+- `verify.py` — argparse CLI: `python verify.py img1.jpg img2.jpg [--threshold 0.6]`
+- `docs/api.md` — full API reference with copy-paste curl examples
+- `tests/test_api.py` — four HTTP-layer tests using `TestClient` (no real model inference; monkeypatched embedder)
+
+What M3 shipped:
 - `src/styleverify/styles.py` — five transforms (`sketch`, `pencil`, `cartoon`, `oil`, `watercolor`) plus `detect_style` heuristic; all pure Pillow + NumPy + scikit-image, no OpenCV
 - `scripts/demo_styles.py` — standalone script that produces a 2×3 image grid (original + 5 styled variants); run with `PYTHONPATH=src python scripts/demo_styles.py`
 - `tests/test_styles.py` — transform output shape/mode checks, pixel-change assertions, and detector validity tests
@@ -53,7 +59,7 @@ Input image A          Input image B
         cosine similarity
                │
                ▼
-   { match, score, style_detected }
+   { match, score, style_detected, elapsed_ms }
 ```
 
 ---
@@ -82,10 +88,8 @@ PYTHONPATH=src python scripts/demo_styles.py --input photo.jpg --output demo_gri
 
 ### REST API
 
-> **Not yet available — ships in M4.**
-
 ```bash
-uvicorn main:app --reload
+PYTHONPATH=src uvicorn main:app --reload
 ```
 
 ```bash
@@ -95,21 +99,22 @@ curl -X POST http://localhost:8000/verify \
 ```
 
 ```json
-{ "match": true, "score": 0.87, "style_detected": "cartoon" }
+{ "match": true, "score": 0.87, "style_detected": "cartoon", "elapsed_ms": 342.15 }
 ```
+
+See [docs/api.md](docs/api.md) for full endpoint reference.
 
 ### CLI
 
-> **Not yet available — ships in M4.**
-
 ```bash
-python verify.py photo.jpg cartoon.jpg
+PYTHONPATH=src python verify.py photo.jpg cartoon.jpg
 # Same person (score=0.87, style=cartoon)
+
+PYTHONPATH=src python verify.py photo.jpg sketch.jpg --threshold 0.7
+# Different person (score=0.45, style=sketch)
 ```
 
 ### Docker
-
-> **Not yet available — ships in M4.**
 
 ```bash
 docker build -t styleverify .
@@ -151,11 +156,14 @@ styleverify/
 ├── tests/
 │   ├── __init__.py
 │   ├── test_embedder.py    (same-image ≥ 0.99, different-image < 0.6)
-│   └── test_styles.py      (transform shape/pixel/detector tests)
-├── main.py                 (M4 — FastAPI app)
-├── verify.py               (M4 — CLI entry point)
-├── Dockerfile              (stub)
-├── requirements.txt        (pinned, includes pytest)
+│   ├── test_styles.py      (transform shape/pixel/detector tests)
+│   └── test_api.py         (HTTP-layer tests with TestClient; monkeypatched embedder)
+├── docs/
+│   └── api.md              (endpoint reference with curl examples)
+├── main.py                 (FastAPI app — POST /verify, GET /health)
+├── verify.py               (CLI entry point — argparse wrapper)
+├── Dockerfile              (single uvicorn start command)
+├── requirements.txt        (pinned, includes pytest + httpx)
 ├── pyproject.toml          (minimal setuptools build)
 ├── LICENSE                 (MIT)
 └── .gitignore
@@ -170,7 +178,7 @@ styleverify/
 | M1 | Scaffold: project layout, deps, license, README | done |
 | M2 | ArcFace embedder (`embedder.py`) | done |
 | M3 | Style augmentations (`styles.py`) | done |
-| M4 | FastAPI endpoint + CLI (`main.py`, `verify.py`) | planned |
+| M4 | FastAPI endpoint + CLI (`main.py`, `verify.py`) | done |
 | M5 | Evaluation script, LFW benchmark, filled metrics table | planned |
 
 ---
