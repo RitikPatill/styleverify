@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "styleverify"
+version = "0.1.0"
+description = "Stylization-agnostic face verification via ArcFace embeddings"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
