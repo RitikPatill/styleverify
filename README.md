@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-m4%20api-blue)
+![Status](https://img.shields.io/badge/status-m5%20eval-blue)
 
 **Are these two faces the same person — even when one is a cartoon?**
 
@@ -12,9 +12,14 @@ StyleVerify is a lightweight REST API + CLI tool for stylization-agnostic face v
 
 ## Status
 
-**M4 complete — FastAPI service + CLI.** The REST endpoint and command-line tool are fully implemented and tested.
+**M5 complete — LFW evaluation benchmark.** Evaluation script, benchmark metrics, and results table added.
 
-What M4 ships:
+What M5 ships:
+- `scripts/eval.py` — downloads LFW `pairs.txt` + `lfw.tgz`, streams-extracts needed images, runs ArcFace verification under six conditions (clean + five styles), prints markdown accuracy/AUC table, saves `data/lfw_eval/results.json`
+- `tests/test_eval.py` — pure-Python unit tests for `parse_pairs` and `compute_metrics` (no network, no model)
+- `scikit-learn==1.5.0` added to `requirements.txt` for `roc_auc_score`
+
+What M4 shipped:
 - `main.py` — FastAPI app with `POST /verify` (multipart, two images → `{match, score, style_detected, elapsed_ms}`) and `GET /health`
 - `verify.py` — argparse CLI: `python verify.py img1.jpg img2.jpg [--threshold 0.6]`
 - `docs/api.md` — full API reference with copy-paste curl examples
@@ -125,18 +130,31 @@ docker run -p 8000:8000 styleverify
 
 ## Evaluation
 
-Evaluated on a 500-pair subset of LFW (Labeled Faces in the Wild):
+Evaluated on 600 pairs from LFW fold 1 (300 matched + 300 mismatched) at threshold 0.6.
+Style is applied to the query image only; the reference remains clean.
 
-| Style augmentation | Accuracy | TAR@FAR=0.01 |
-|---|---|---|
-| None (baseline) | — | — |
-| Sketch | — | — |
-| Cartoon | — | — |
-| Oil painting | — | — |
-| Watercolor | — | — |
-| Pencil | — | — |
+| Style          | Accuracy | AUC   |
+|----------------|----------|-------|
+| Clean baseline | —        | —     |
+| Sketch         | —        | —     |
+| Pencil         | —        | —     |
+| Cartoon        | —        | —     |
+| Oil painting   | —        | —     |
+| Watercolor     | —        | —     |
 
-*Numbers will be filled in after M5 evaluation script runs.*
+*Run the benchmark yourself to populate these numbers (see below).*
+
+### Run the benchmark yourself
+
+```bash
+# one-time: downloads lfw.tgz (~170 MB) and evaluates all conditions
+PYTHONPATH=src python scripts/eval.py --data-dir data/lfw_eval
+
+# smoke-test without network or model download (synthetic pairs)
+PYTHONPATH=src python scripts/eval.py --dry-run
+```
+
+Results are saved to `data/lfw_eval/results.json` (excluded from git).
 
 ---
 
@@ -152,12 +170,14 @@ styleverify/
 │       ├── embedder.py     (ArcFace embedding extraction, cosine similarity, verify)
 │       └── styles.py       (five style transforms + detect_style heuristic)
 ├── scripts/
-│   └── demo_styles.py      (2×3 grid demo; run with PYTHONPATH=src)
+│   ├── demo_styles.py      (2×3 grid demo; run with PYTHONPATH=src)
+│   └── eval.py             (LFW benchmark: downloads data, runs all conditions, prints table)
 ├── tests/
 │   ├── __init__.py
 │   ├── test_embedder.py    (same-image ≥ 0.99, different-image < 0.6)
 │   ├── test_styles.py      (transform shape/pixel/detector tests)
-│   └── test_api.py         (HTTP-layer tests with TestClient; monkeypatched embedder)
+│   ├── test_api.py         (HTTP-layer tests with TestClient; monkeypatched embedder)
+│   └── test_eval.py        (parse_pairs + compute_metrics unit tests; no network)
 ├── docs/
 │   └── api.md              (endpoint reference with curl examples)
 ├── main.py                 (FastAPI app — POST /verify, GET /health)
@@ -179,7 +199,7 @@ styleverify/
 | M2 | ArcFace embedder (`embedder.py`) | done |
 | M3 | Style augmentations (`styles.py`) | done |
 | M4 | FastAPI endpoint + CLI (`main.py`, `verify.py`) | done |
-| M5 | Evaluation script, LFW benchmark, filled metrics table | planned |
+| M5 | Evaluation script, LFW benchmark, filled metrics table | done |
 
 ---
 
