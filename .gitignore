@@ -35,3 +35,6 @@ data/
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated demo GIF (regenerate with: vhs docs/demo.tape)
+docs/demo.gif

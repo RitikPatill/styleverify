@@ -16,6 +16,7 @@ def _make_face_image(seed: int) -> np.ndarray:
     return rng.integers(0, 255, (112, 112, 3), dtype=np.uint8)
 
 
+@pytest.mark.integration
 def test_same_image_high_similarity():
     arr = _make_face_image(42)
     score = embedder.cosine_similarity(
@@ -25,6 +26,7 @@ def test_same_image_high_similarity():
     assert score >= 0.99, f"Expected same-image score >= 0.99, got {score:.4f}"
 
 
+@pytest.mark.integration
 def test_different_seeds_score_below_threshold():
     a = embedder.get_embedding(_make_face_image(0))
     b = embedder.get_embedding(_make_face_image(999))
