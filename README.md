@@ -1,5 +1,9 @@
 # StyleVerify
 
+
+> **Video walkthrough:** https://youtu.be/ZEK_jnDmXSs
+> **60-second overview:** https://youtu.be/A9cibE3zidI
+
 > Verify whether two face images show the same person even after artistic style transfer, using pre-trained embeddings.
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
